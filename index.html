@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0B1220">
+<title>デイリー約定チェッカー</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;700&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    min-height: 100vh; background: #0B1220; color: #E6EDF7;
+    font-family: 'Hiragino Kaku Gothic ProN','Noto Sans JP',system-ui,sans-serif;
+  }
+  #app { max-width: 560px; margin: 0 auto; padding: 16px 14px 48px; }
+  .led { font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.02em; }
+  .pulse { animation: pulse 0.6s ease-in-out 3; }
+  @keyframes pulse { 50% { opacity: 0.35; } }
+  button { -webkit-tap-highlight-color: transparent; font-family: inherit; }
+
+  .board { background:#0E1626; border:1px solid #1E2A40; border-radius:14px; padding:14px 16px 16px; margin-bottom:12px; }
+  .board-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+  .ticker { font-family:'IBM Plex Mono',monospace; font-size:10px; color:#5B6B85; letter-spacing:0.18em; }
+  .date-chip { font-size:12px; color:#9AA9C2; }
+  .board-main { display:flex; justify-content:space-between; align-items:flex-end; gap:12px; }
+  .pct-label { font-size:11px; color:#7C8BA3; margin-bottom:2px; }
+  .pct-value { font-size:44px; font-weight:700; color:#FFB020; line-height:1.05; }
+  .pct-value .small { font-size:22px; }
+  .sub-row { font-size:12px; color:#9AA9C2; margin-top:4px; }
+  .bonus { color:#FFB020; margin-left:8px; }
+  .streak-box { text-align:right; border-left:1px solid #1E2A40; padding-left:14px; }
+  .streak-label { font-size:11px; color:#7C8BA3; }
+  .streak-value { font-size:26px; font-weight:700; color:#E8442E; }
+  .streak-value .small { font-size:14px; margin-left:3px; }
+  .streak-best { font-size:10px; color:#5B6B85; margin-top:2px; }
+  .bar-track { position:relative; height:8px; background:#131C2E; border-radius:4px; margin-top:14px; overflow:hidden; }
+  .bar-fill { height:100%; border-radius:4px; transition:width 0.4s ease; }
+  .goal-tick { position:absolute; top:0; bottom:0; width:2px; background:#E8442E; opacity:0.7; }
+  .goal-note { font-size:11.5px; color:#9AA9C2; margin-top:8px; }
+
+  .beer { display:flex; align-items:center; gap:12px; background:#0E1626; border:1px dashed #2A3A57; border-radius:14px; padding:12px 16px; margin-bottom:16px; transition:all 0.3s ease; }
+  .beer.on { border:1px solid #FFB020; background:#171B12; }
+  .beer-icon { font-size:28px; }
+  .beer-title { font-size:14px; font-weight:700; }
+  .beer-sub { font-size:11.5px; color:#9AA9C2; margin-top:2px; }
+
+  .study-card { background:#0E1626; border:1px solid #1E2A40; border-radius:14px; padding:12px 16px 14px; margin-bottom:16px; }
+  .study-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+  .study-title { font-size:13px; font-weight:700; }
+  .rank-badge { font-size:12px; font-weight:700; color:#FFB020; border:1px solid #4A3A15; border-radius:6px; padding:3px 10px; }
+  .study-row { display:flex; gap:16px; margin-bottom:10px; }
+  .gauge { flex:1; }
+  .gauge-label { font-size:12px; color:#9AA9C2; margin-bottom:4px; }
+  .gauge-dots { display:flex; align-items:center; gap:5px; }
+  .dot { width:14px; height:14px; border-radius:50%; background:#131C2E; border:1px solid #2A3A57; transition:all 0.2s ease; }
+  .dot.on { background:#E8442E; border-color:#E8442E; }
+  .gauge-text { font-size:11px; margin-left:4px; color:#7C8BA3; }
+  .gauge-text.done { color:#FFB020; font-weight:700; }
+  .study-footer { display:flex; justify-content:space-between; font-size:11.5px; color:#9AA9C2; border-top:1px solid #1E2A40; padding-top:8px; }
+
+  .session { margin-bottom:14px; }
+  .session-head { display:flex; align-items:baseline; gap:8px; padding:0 4px 6px; }
+  .session-label { font-size:14px; font-weight:700; color:#FFB020; }
+  .session-time { font-size:11px; color:#7C8BA3; }
+  .session-count { margin-left:auto; font-size:11px; color:#7C8BA3; font-family:'IBM Plex Mono',monospace; }
+  .row { display:flex; align-items:center; gap:10px; width:100%; text-align:left; background:#0E1626; border:1px solid #1E2A40; border-radius:10px; padding:11px 12px; margin-bottom:6px; cursor:pointer; transition:all 0.15s ease; color:inherit; }
+  .row:active { transform:scale(0.985); }
+  .row.on { background:#131A14; border-color:#2E4A33; }
+  .check { flex-shrink:0; font-size:10px; font-weight:700; color:#7C8BA3; border:1px solid #2A3A57; border-radius:5px; padding:3px 7px; }
+  .row.on .check { color:#0B1220; background:#E8442E; border-color:#E8442E; }
+  .task-name { font-size:13.5px; flex:1; line-height:1.4; }
+  .row.on .task-name { color:#8FA08F; text-decoration:line-through; }
+  .opt-tag { font-size:9.5px; color:#FFB020; border:1px solid #4A3A15; border-radius:4px; padding:1px 5px; margin-left:6px; }
+  .task-time { flex-shrink:0; font-size:10.5px; color:#7C8BA3; font-family:'IBM Plex Mono',monospace; }
+  .reset { display:block; margin:20px auto 0; background:none; border:1px solid #2A3A57; color:#7C8BA3; border-radius:8px; padding:8px 20px; font-size:12px; cursor:pointer; }
+  .footer { font-size:11px; color:#5B6B85; text-align:center; margin-top:16px; line-height:1.6; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+// ---- ルーティン定義 ----
+const SESSIONS = [
+  { id:"premarket", label:"寄り前", time:"4:20 – 7:30", tasks:[
+    { id:"wake", name:"起床", time:"4:20", core:true },
+    { id:"us_pos", name:"米株持ち株チェック", time:"4:20–4:40", core:true },
+    { id:"opt_pos", name:"オプション建玉チェック", time:"4:40–4:50", core:true },
+    { id:"us_screen", name:"米株新規エントリー探し", time:"4:50–5:00", core:true },
+    { id:"discord", name:"Discord確認 → 🤖 Claudeセッション開始・指示出し", time:"5:00–5:15", core:true },
+    { id:"marie", name:"まりーさん（合間にClaudeへ返答・調節）", time:"5:15–6:00", core:true },
+    { id:"london", name:"ミリアカロンドン・朝の会", time:"6:00–6:15", core:true },
+    { id:"claude_am", name:"🤖 Claude仕上げ・最終調整・クローズ", time:"6:15–6:40", core:true },
+    { id:"cnbc", name:"CNBC米国（朝食しながら・字幕）", time:"6:40頃〜", core:false },
+    { id:"kids_am", name:"朝支度・子ども対応", time:"6:40–7:25", core:true },
+  ]},
+  { id:"am_commute", label:"往路", time:"7:30 – 8:15", tasks:[
+    { id:"morsat", name:"モーサテ要点（倍速）", time:"電車内", core:true },
+    { id:"rote_am", name:"ローテ1本（とも / PAN / オプラボ）", time:"徒歩", core:false },
+  ]},
+  { id:"work", label:"ザラ場", time:"8:15 – 17:15", tasks:[
+    { id:"jp1430", name:"日本株持ち株チェック＋新規スクリーニング", time:"14:30 固定 15分", core:true },
+    { id:"textbook", name:"📖 教科書 10分 or 1項目", time:"すきま", core:false, study:"book" },
+    { id:"opvideo", name:"🎬 手術ビデオ 1本（部分でもOK）", time:"すきま", core:false, study:"video" },
+    { id:"hige", name:"ひげづら", time:"すきま", core:false },
+  ]},
+  { id:"pm_commute", label:"復路", time:"17:15 – 18:15", tasks:[
+    { id:"kuritore", name:"クリトレ", time:"約10分", core:true },
+    { id:"nikkei_cnbc", name:"日経CNBC", time:"約10分", core:true },
+    { id:"shindo", name:"神藤YouTube", time:"約10分", core:true },
+    { id:"kabulab", name:"かぶラボ", time:"約10分", core:true },
+    { id:"pickup", name:"保育園お迎え", time:"〜18:15", core:true },
+  ]},
+  { id:"night", label:"ナイトセッション", time:"18:00 – 22:15", tasks:[
+    { id:"nobu", name:"NOBU（ながら視聴OK）", time:"18:00–", core:true },
+    { id:"weather", name:"天気予報", time:"18:30–", core:false },
+    { id:"bunzemi", name:"分ゼミ", time:"18:45–", core:true },
+    { id:"sleep_kids", name:"寝かしつけ完了", time:"20:00–20:30", core:true },
+    { id:"lap", name:"ラパロトレーニング（🍺前・素面で）", time:"20:30–21:00", core:true },
+    { id:"milli", name:"ミリアカトレーニング 30分", time:"21:00–21:30", core:true },
+    { id:"bed", name:"22:15 大引け（絶対就寝）", time:"〜22:15", core:true },
+  ]},
+];
+const ALL_TASKS = SESSIONS.flatMap(s => s.tasks);
+const CORE_IDS = ALL_TASKS.filter(t => t.core).map(t => t.id);
+const STORAGE_KEY = "routine-board-v1";
+const GOAL_PCT = 80;
+const WEEKLY_GOAL = 3;
+const RANKS = [
+  { min:0, title:"研修医", icon:"🩺" },
+  { min:10, title:"専攻医", icon:"📗" },
+  { min:30, title:"専門医", icon:"🎓" },
+  { min:70, title:"指導医", icon:"🏅" },
+  { min:150, title:"Godhand", icon:"👑" },
+];
+const rankOf = t => { let r = RANKS[0]; for (const c of RANKS) if (t >= c.min) r = c; return r; };
+const nextRank = t => RANKS.find(c => c.min > t) || null;
+
+const pad = n => String(n).padStart(2, "0");
+const todayStr = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; };
+const yesterdayStr = () => { const d = new Date(); d.setDate(d.getDate()-1); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; };
+const jpDate = () => { const d = new Date(); const w = ["日","月","火","水","木","金","土"][d.getDay()]; return `${d.getMonth()+1}/${d.getDate()}（${w}）`; };
+const weekStr = () => { const d = new Date(); const day = (d.getDay()+6)%7; const m = new Date(d); m.setDate(d.getDate()-day); return `${m.getFullYear()}-${pad(m.getMonth()+1)}-${pad(m.getDate())}`; };
+
+// ---- 状態 ----
+let checks = {};
+let meta = { streak:0, lastGoalDate:null, best:0, study:{ week:weekStr(), book:0, video:0, lifeBook:0, lifeVideo:0 } };
+
+function load() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const saved = JSON.parse(raw);
+    if (saved.date === todayStr()) checks = saved.checks || {};
+    if (saved.meta) {
+      meta = { ...meta, ...saved.meta };
+      meta.study = { week:weekStr(), book:0, video:0, lifeBook:0, lifeVideo:0, ...(saved.meta.study||{}) };
+      if (meta.study.week !== weekStr()) { meta.study.week = weekStr(); meta.study.book = 0; meta.study.video = 0; }
+    }
+  } catch(e) {}
+}
+
+function save() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ date: todayStr(), checks, meta })); } catch(e) {}
+}
+
+function toggle(id) {
+  const task = ALL_TASKS.find(t => t.id === id);
+  const turningOn = !checks[id];
+  if (task && task.study) {
+    const s = meta.study, d = turningOn ? 1 : -1;
+    if (task.study === "book") { s.book = Math.max(0, s.book + d); s.lifeBook = Math.max(0, s.lifeBook + d); }
+    else { s.video = Math.max(0, s.video + d); s.lifeVideo = Math.max(0, s.lifeVideo + d); }
+  }
+  checks[id] = !checks[id];
+  // 連騰判定
+  const coreDone = CORE_IDS.filter(i => checks[i]).length;
+  const pct = Math.round(coreDone / CORE_IDS.length * 100);
+  if (pct >= GOAL_PCT && meta.lastGoalDate !== todayStr()) {
+    meta.streak = (meta.lastGoalDate === yesterdayStr()) ? meta.streak + 1 : 1;
+    meta.lastGoalDate = todayStr();
+    meta.best = Math.max(meta.best || 0, meta.streak);
+  }
+  save();
+  render(task && task.study && turningOn ? "study" : (pct >= GOAL_PCT ? "goal" : null));
+}
+
+function resetToday() {
+  if (confirm("今日のチェックをリセットしますか？")) { checks = {}; save(); render(); }
+}
+
+function esc(s) { return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+function gaugeHTML(label, count) {
+  const done = count >= WEEKLY_GOAL;
+  let dots = "";
+  for (let i = 0; i < WEEKLY_GOAL; i++) dots += `<span class="dot${i < count ? " on" : ""}"></span>`;
+  return `<div class="gauge"><div class="gauge-label">${label}</div><div class="gauge-dots">${dots}<span class="gauge-text${done ? " done" : ""}">${done ? "週間ノルマ達成！" : `週${count}/${WEEKLY_GOAL}`}</span></div></div>`;
+}
+
+function render(flash) {
+  const coreDone = CORE_IDS.filter(i => checks[i]).length;
+  const pct = Math.round(coreDone / CORE_IDS.length * 100);
+  const bonusDone = ALL_TASKS.filter(t => !t.core && checks[t.id]).length;
+  const beerOn = !!checks["milli"];
+  const goalHit = pct >= GOAL_PCT;
+  const lifeTotal = (meta.study.lifeBook || 0) + (meta.study.lifeVideo || 0);
+  const rank = rankOf(lifeTotal);
+  const next = nextRank(lifeTotal);
+  const remain = Math.max(0, Math.ceil(GOAL_PCT / 100 * CORE_IDS.length) - coreDone);
+
+  let html = `
+  <header class="board">
+    <div class="board-top"><span class="ticker">RIKO ROUTINE / TSE-STYLE</span><span class="date-chip">${jpDate()}</span></div>
+    <div class="board-main">
+      <div>
+        <div class="pct-label">本日の達成率</div>
+        <div class="led pct-value${flash === "goal" ? " pulse" : ""}"><span class="small">${pct > 0 ? "▲" : "―"}</span>${pct}<span class="small">%</span></div>
+        <div class="sub-row">コア ${coreDone}/${CORE_IDS.length} 約定${bonusDone > 0 ? `<span class="bonus">＋ボーナス${bonusDone}</span>` : ""}</div>
+      </div>
+      <div class="streak-box">
+        <div class="streak-label">連騰記録</div>
+        <div class="led streak-value">${meta.streak}<span class="small">日</span></div>
+        <div class="streak-best">最高 ${meta.best || 0} 日</div>
+      </div>
+    </div>
+    <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${goalHit ? "#E8442E" : "#FFB020"}"></div><div class="goal-tick" style="left:${GOAL_PCT}%"></div></div>
+    <div class="goal-note">${goalHit ? "🎉 ストップ高達成！本日は「連騰」にカウントされました" : `あと${remain}件のコア約定で ${GOAL_PCT}% ライン到達`}</div>
+  </header>
+
+  <div class="beer${beerOn ? " on" : ""}">
+    <span class="beer-icon">${beerOn ? "🍺" : "🔒"}</span>
+    <div>
+      <div class="beer-title">${beerOn ? "ビール権利確定！" : "ビール権利：未確定"}</div>
+      <div class="beer-sub">${beerOn ? "21:30〜 本日の全ノルマ完了。ゆっくりどうぞ" : "「ミリアカトレーニング」の約定で解禁されます"}</div>
+    </div>
+  </div>
+
+  <div class="study-card${flash === "study" ? " pulse" : ""}">
+    <div class="study-head"><span class="study-title">研鑽ログ</span><span class="rank-badge">${rank.icon} ${rank.title}</span></div>
+    <div class="study-row">${gaugeHTML("📖 教科書", meta.study.book)}${gaugeHTML("🎬 手術ビデオ", meta.study.video)}</div>
+    <div class="study-footer">
+      <span>生涯累計 <b class="led" style="color:#FFB020">${lifeTotal}</b> 回</span>
+      ${next ? `<span>あと${next.min - lifeTotal}回で ${next.icon} ${next.title}</span>` : `<span style="color:#FFB020">最高位到達 👑</span>`}
+    </div>
+  </div>`;
+
+  for (const s of SESSIONS) {
+    const done = s.tasks.filter(t => checks[t.id]).length;
+    html += `<section class="session"><div class="session-head"><span class="session-label">${s.label}</span><span class="session-time">${s.time}</span><span class="session-count">${done}/${s.tasks.length}</span></div>`;
+    for (const t of s.tasks) {
+      const on = !!checks[t.id];
+      html += `<button class="row${on ? " on" : ""}" data-id="${t.id}">
+        <span class="check">${on ? "約定" : "指値"}</span>
+        <span class="task-name">${esc(t.name)}${!t.core ? `<span class="opt-tag">ボーナス</span>` : ""}</span>
+        <span class="task-time">${esc(t.time)}</span>
+      </button>`;
+    }
+    html += `</section>`;
+  }
+
+  html += `<button class="reset" id="reset-btn">今日をリセット</button>
+  <div class="footer">コアタスクの達成率${GOAL_PCT}%以上で「連騰」が伸びます。ボーナス枠は無理せず、取れた日だけで OK。<br>データはこのブラウザ内に保存されます。</div>`;
+
+  document.getElementById("app").innerHTML = html;
+  document.querySelectorAll(".row").forEach(el => el.addEventListener("click", () => toggle(el.dataset.id)));
+  document.getElementById("reset-btn").addEventListener("click", resetToday);
+}
+
+load();
+render();
+// 日付をまたいだら自動リロード（アプリを開きっぱなしの場合）
+setInterval(() => {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (raw) { try { if (JSON.parse(raw).date !== todayStr()) { checks = {}; save(); render(); } } catch(e) {} }
+}, 60000);
+</script>
+</body>
+</html>
