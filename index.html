@@ -90,9 +90,10 @@ const SESSIONS = [
     { id:"us_screen", name:"米株新規エントリー探し", time:"4:50–5:00", core:true },
     { id:"discord", name:"Discord確認 → 🤖 Claudeセッション開始・指示出し", time:"5:00–5:15", core:true },
     { id:"marie", name:"まりーさん（合間にClaudeへ返答・調節）", time:"5:15–6:00", core:true },
-    { id:"london", name:"ミリアカロンドン・朝の会", time:"6:00–6:15", core:true },
+    { id:"london", name:"ミリアカロンドンルーティン", time:"6:00–6:15", core:true },
     { id:"claude_am", name:"🤖 Claude仕上げ・最終調整・クローズ", time:"6:15–6:40", core:true },
     { id:"cnbc", name:"CNBC米国（朝食しながら・字幕）", time:"6:40頃〜", core:false },
+    { id:"news_chart", name:"ニュースとチャートメンタルズ", time:"20分", core:true },
     { id:"kids_am", name:"朝支度・子ども対応", time:"6:40–7:25", core:true },
   ]},
   { id:"am_commute", label:"往路", time:"7:30 – 8:15", tasks:[
@@ -103,7 +104,7 @@ const SESSIONS = [
   { id:"work", label:"ザラ場", time:"8:15 – 17:15", tasks:[
     { id:"jp1430", name:"日本株持ち株チェック＋新規スクリーニング", time:"14:30 固定 15分", core:true },
     { id:"textbook", name:"📖 教科書 10分 or 1項目", time:"すきま", core:false, study:"book" },
-    { id:"opvideo", name:"🎬 手術ビデオ 1本（部分でもOK）", time:"すきま", core:false, study:"video" },
+    { id:"opvideo", name:"🎬 手術ビデオ or 手術（部分でもOK）", time:"すきま", core:false, study:"video" },
     { id:"hige", name:"ひげづら", time:"すきま", core:false },
   ]},
   { id:"pm_commute", label:"復路", time:"17:15 – 18:15", tasks:[
@@ -117,6 +118,7 @@ const SESSIONS = [
     { id:"nobu", name:"NOBU（ながら視聴OK）", time:"18:00–", core:true },
     { id:"weather", name:"天気予報", time:"18:30–", core:false },
     { id:"bunzemi", name:"分ゼミ", time:"18:45–", core:true },
+    { id:"moriya", name:"守屋ゼミ", time:"30分", core:true },
     { id:"sleep_kids", name:"寝かしつけ完了", time:"20:00–20:30", core:true },
     { id:"lap", name:"ラパロトレーニング（🍺前・素面で）", time:"20:30–21:00", core:true },
     { id:"milli", name:"ミリアカトレーニング 30分", time:"21:00–21:30", core:true },
