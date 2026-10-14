@@ -128,6 +128,22 @@ const SESSIONS = [
     { id:"tech_check", name:"テクニカルチェック", time:"10分", core:true },
     { id:"bed", name:"22:15 大引け（絶対就寝）", time:"〜22:15", core:true },
   ]},
+  { id:"screening", label:"スクリーニング", time:"", tasks:[
+    { id:"scr_moomoo", name:"moomooスクリーナー", time:"", core:false },
+    { id:"scr_tv", name:"Trading viewスクリーナー（小次郎、山場、オプション）", time:"", core:false },
+    { id:"scr_kachi", name:"勝ちパターン自動", time:"", core:false },
+    { id:"scr_discord", name:"Discord", time:"", core:false },
+    { id:"scr_tv_tmpl", name:"Trading viewテンプレート、お気に入り", time:"", core:false },
+    { id:"scr_ispeed", name:"iSPEED テーマ、ランキング", time:"", core:false },
+    { id:"scr_moomoo_theme", name:"moomooテーマ", time:"", core:false },
+  ]},
+  { id:"fanda", label:"たまにファンダ", time:"", tasks:[
+    { id:"fd_scouter", name:"銘柄スカウター", time:"", core:false },
+    { id:"fd_gfs", name:"GFSの眼", time:"", core:false },
+    { id:"fd_sbi", name:"SBI", time:"", core:false },
+    { id:"fd_kabutan", name:"株探", time:"", core:false },
+    { id:"fd_dragon", name:"株ドラゴン", time:"", core:false },
+  ]},
 ];
 const ALL_TASKS = SESSIONS.flatMap(s => s.tasks);
 const CORE_IDS = ALL_TASKS.filter(t => t.core).map(t => t.id);
